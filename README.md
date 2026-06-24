@@ -1,16 +1,42 @@
-# React + Vite
+# Mariners Gameday Dashboard
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+🌐 **Live:** https://mattheuscolyn.github.io/mariners-dashboard/
 
-Currently, two official plugins are available:
+A single-page gameday dashboard for the Seattle Mariners — today's game, lineups, matchup intel, roster explorer, and a stat glossary. Built with React + Vite, powered by the MLB Stats API.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Local setup
 
-## React Compiler
+```bash
+git clone https://github.com/mattheuscolyn/mariners-dashboard.git
+cd mariners-dashboard
+npm install
+cp .env.example .env   # optional: add Odds API key
+npm run dev
+```
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Open http://localhost:5173/mariners-dashboard/
 
-## Expanding the Oxlint configuration
+### Dev mock mode
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+Append `?mock=<state>` to preview the dashboard without a live game:
+
+- `pregame_announced` · `pregame_unannounced` · `live` · `final` · `offday`
+
+Example: http://localhost:5173/mariners-dashboard/?mock=pregame_announced
+
+## Deploy
+
+```bash
+npm run deploy
+```
+
+This rebuilds `docs/`, commits the output, and pushes to `main`. GitHub Pages serves from the `/docs` folder — changes are live within ~60 seconds.
+
+## Data sources
+
+- **MLB Stats API** — schedules, rosters, lineups, player stats (free, no API key)
+- **The Odds API** — moneyline implied win probability (optional; requires `VITE_ODDS_API_KEY` in `.env`)
+
+## Disclaimer
+
+This is an unofficial fan project. Not affiliated with MLB or the Seattle Mariners.
