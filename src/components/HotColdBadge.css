@@ -1,0 +1,42 @@
+.hot-cold-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-pill);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .hot-cold-badge {
+    animation: badge-fade-in 300ms ease-out;
+  }
+
+  @keyframes badge-fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+}
+
+.hot-cold-badge--hot {
+  background: var(--color-hot);
+  color: var(--color-navy);
+}
+
+.hot-cold-badge--cold {
+  background: var(--color-cold);
+  color: var(--color-white);
+}
+
+.hot-cold-badge--neutral {
+  background: var(--color-silver);
+  color: var(--color-navy);
+}
+
+.hot-cold-badge__emoji {
+  font-size: var(--text-sm);
+  line-height: 1;
+}

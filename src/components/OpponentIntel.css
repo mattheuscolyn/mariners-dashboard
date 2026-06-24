@@ -1,0 +1,110 @@
+.opponent-intel {
+  margin-bottom: var(--space-6);
+}
+
+.opponent-intel__title {
+  margin: 0 0 var(--space-6);
+  font-family: var(--font-display);
+  font-size: var(--text-2xl);
+  font-weight: 700;
+}
+
+.opponent-intel__record {
+  font-weight: 400;
+  color: var(--color-silver);
+  font-size: var(--text-lg);
+}
+
+.opponent-intel__section {
+  margin-bottom: var(--space-6);
+}
+
+.opponent-intel__section:last-child {
+  margin-bottom: 0;
+}
+
+.opponent-intel__subtitle {
+  margin: 0 0 var(--space-3);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-teal-bright);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.opponent-intel__hitters {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.opponent-intel__hitter {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  background: var(--color-navy);
+  border-radius: var(--radius-md);
+}
+
+.opponent-intel__hitter-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  font-weight: 600;
+  font-size: var(--text-base);
+  font-family: inherit;
+  color: var(--color-white);
+  cursor: pointer;
+  transition: color 0.15s;
+}
+
+.opponent-intel__hitter-btn:hover {
+  color: var(--color-teal-bright);
+  text-decoration: underline;
+}
+
+.opponent-intel__hitter-name {
+  font-weight: 600;
+  font-size: var(--text-base);
+}
+
+.opponent-intel__hitter-stats {
+  display: flex;
+  gap: var(--space-4);
+}
+
+.opponent-intel__injuries {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.opponent-intel__injuries li {
+  font-size: var(--text-sm);
+  color: var(--color-silver);
+}
+
+.opponent-intel__empty {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--color-silver-dim);
+  font-style: italic;
+}
+
+.opponent-intel__h2h {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-weight: 600;
+}
+
+.opponent-intel__error {
+  margin: 0;
+  color: var(--color-loss);
+}

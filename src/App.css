@@ -1,0 +1,4 @@
+.app-main {
+  padding: var(--space-4) 0;
+  min-height: calc(100vh - 120px);
+}

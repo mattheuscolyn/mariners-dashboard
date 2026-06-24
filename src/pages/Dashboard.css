@@ -1,0 +1,121 @@
+.dashboard {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: var(--space-4);
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 var(--space-4);
+}
+
+.dashboard--loading {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  min-height: 50vh;
+}
+
+.dashboard__skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  background: var(--color-navy-mid);
+  border-radius: var(--radius-lg);
+}
+
+.dashboard__skeleton--tall {
+  min-height: 200px;
+}
+
+.dashboard__section--full {
+  grid-column: 1 / -1;
+}
+
+.dashboard__section--lineup {
+  grid-column: 1 / -1;
+}
+
+.dashboard__section--watch,
+.dashboard__section--intel {
+  grid-column: 1 / -1;
+}
+
+.dashboard__updated {
+  grid-column: 1 / -1;
+  margin: var(--space-4) 0 var(--space-8);
+  font-size: var(--text-sm);
+  color: var(--color-silver-dim);
+  text-align: center;
+}
+
+@media (min-width: 768px) {
+  .dashboard__section--watch {
+    grid-column: 1 / 7;
+  }
+
+  .dashboard__section--intel {
+    grid-column: 7 / -1;
+  }
+}
+
+@media (max-width: 640px) {
+  .dashboard {
+    padding: 0 var(--space-4);
+  }
+}
+
+.dev-mock-banner {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  background: #7c3aed;
+  color: #fff;
+}
+
+.dev-mock-banner__label {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.dev-mock-banner__pills {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-2);
+}
+
+.dev-mock-banner__pill {
+  padding: 0.25rem 0.625rem;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  font-size: 0.6875rem;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.dev-mock-banner__pill:hover {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.dev-mock-banner__pill--active {
+  background: #fff;
+  color: #7c3aed;
+  border-color: #fff;
+  font-weight: 600;
+}
+
+.dashboard-mock-wrap {
+  padding-bottom: 5.5rem;
+}

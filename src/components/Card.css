@@ -1,0 +1,10 @@
+.card {
+  background: var(--color-navy-mid);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+  box-shadow: var(--shadow-card);
+}
+
+.card--glow-teal {
+  box-shadow: var(--shadow-card), var(--shadow-glow-teal);
+}

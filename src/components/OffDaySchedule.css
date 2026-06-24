@@ -1,0 +1,64 @@
+.off-day {
+  margin-bottom: var(--space-6);
+}
+
+.off-day__title {
+  margin: 0 0 var(--space-4);
+  font-family: var(--font-display);
+  font-size: var(--text-2xl);
+  font-weight: 700;
+  color: var(--color-teal-bright);
+}
+
+.off-day__message {
+  margin: 0;
+  color: var(--color-silver);
+  line-height: 1.5;
+}
+
+.off-day__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.off-day__item {
+  display: grid;
+  grid-template-columns: 100px 1fr auto;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  background: var(--color-navy);
+  border-radius: var(--radius-md);
+  align-items: center;
+}
+
+.off-day__date {
+  font-family: var(--font-display);
+  font-weight: 600;
+  color: var(--color-silver);
+  font-size: var(--text-sm);
+}
+
+.off-day__opponent {
+  font-weight: 500;
+}
+
+.off-day__time {
+  font-size: var(--text-sm);
+  color: var(--color-teal-bright);
+  white-space: nowrap;
+}
+
+.off-day--offseason {
+  text-align: center;
+}
+
+@media (max-width: 640px) {
+  .off-day__item {
+    grid-template-columns: 1fr;
+    gap: var(--space-1);
+  }
+}

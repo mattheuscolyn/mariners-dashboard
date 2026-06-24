@@ -1,0 +1,118 @@
+.nav {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: var(--color-navy-mid);
+  border-bottom: 1px solid var(--color-navy-light);
+}
+
+.nav-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: var(--space-4) var(--space-6);
+  gap: var(--space-4);
+}
+
+.nav-brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  text-decoration: none;
+  color: var(--color-white);
+}
+
+.nav-logo {
+  flex-shrink: 0;
+}
+
+.nav-title {
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: var(--space-6);
+}
+
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-silver);
+  text-decoration: none;
+  font-size: var(--text-base);
+  font-weight: 500;
+  padding-bottom: var(--space-1);
+  border-bottom: 2px solid transparent;
+}
+
+.nav-link__icon {
+  display: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .nav-link {
+    transition: color 0.15s ease;
+  }
+}
+
+.nav-link:hover {
+  color: var(--color-white);
+}
+
+.nav-link--active {
+  color: var(--color-teal-bright);
+  border-bottom-color: var(--color-teal-bright);
+}
+
+@media (max-width: 640px) {
+  .nav-inner {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .nav-title {
+    display: none;
+  }
+
+  .nav-links {
+    gap: var(--space-4);
+  }
+
+  .nav-link__text {
+    display: none;
+  }
+
+  .nav-link__icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radius-md);
+  }
+
+  .nav-link {
+    padding-bottom: 0;
+    border-bottom: none;
+  }
+
+  .nav-link--active .nav-link__icon {
+    background: rgba(0, 133, 122, 0.2);
+    color: var(--color-teal-bright);
+  }
+}
+
+@media (max-width: 375px) {
+  .nav-inner {
+    padding: var(--space-3) var(--space-4);
+  }
+}
