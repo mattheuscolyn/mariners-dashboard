@@ -1,12 +1,14 @@
 import { getPositionInfo } from '../data/positions'
+import {
+  isRecallTransaction,
+  isTradeTransaction,
+  txFromTeam,
+} from './transactionUtils'
+
+export { buildOriginStories, buildOriginString } from './transactionUtils'
 
 export function getPositionName(abbr) {
   return getPositionInfo(abbr).name
-}
-
-function formatMonthYear(dateStr) {
-  const date = new Date(dateStr)
-  return date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
 }
 
 function formatShortDate(dateStr) {
@@ -127,64 +129,22 @@ export function buildLineupExplainer({
   }
 
   const recall = transactions.find(
-    (tx) =>
-      (tx.typeCode === 'RC' || tx.typeDesc?.toLowerCase().includes('recall')) &&
-      daysSince(tx.date) <= 14,
+    (tx) => isRecallTransaction(tx) && daysSince(tx.date) <= 14,
   )
   if (recall) {
-    return `Called up from Tacoma on ${formatShortDate(recall.date)}`
+    const from = txFromTeam(recall) ?? 'the minors'
+    return `Called up from ${from} on ${formatShortDate(recall.date)}`
   }
 
   const trade = transactions.find(
-    (tx) =>
-      (tx.typeCode === 'TR' || tx.typeDesc?.toLowerCase().includes('trade')) &&
-      daysSince(tx.date) <= 60,
+    (tx) => isTradeTransaction(tx) && daysSince(tx.date) <= 60,
   )
   if (trade) {
-    const fromTeam = txFromTeam(trade)
+    const fromTeam = txFromTeam(trade) ?? 'another team'
     return `Acquired from ${fromTeam} on ${formatShortDate(trade.date)}`
   }
 
   return null
-}
-
-function txFromTeam(tx) {
-  return tx.fromTeam?.name ?? tx.fromOrg?.name ?? 'another team'
-}
-
-export function buildOriginString(transactions) {
-  const stories = buildOriginStories(transactions, 1)
-  return stories[0] ?? 'Joined the Mariners organization'
-}
-
-export function buildOriginStories(transactions, limit = 2) {
-  const relevant = transactions.filter((tx) => {
-    if (tx.typeCode === 'REL') return false
-    return ['TR', 'SFA', 'FA', 'SC', 'RC'].includes(tx.typeCode)
-  })
-
-  if (relevant.length === 0) {
-    return ['Joined the Mariners organization']
-  }
-
-  return relevant.slice(0, limit).map((tx) => {
-    const when = formatMonthYear(tx.date)
-    const fromTeam = txFromTeam(tx)
-
-    switch (tx.typeCode) {
-      case 'TR':
-        return `Acquired via trade from ${fromTeam}, ${when}.`
-      case 'SFA':
-      case 'FA':
-        return `Signed as a free agent, ${when}.`
-      case 'SC':
-        return `Selected from ${fromTeam}, ${when}.`
-      case 'RC':
-        return `Recalled from ${fromTeam}, ${when}.`
-      default:
-        return 'Joined the Mariners organization.'
-    }
-  })
 }
 
 export function isOnInjuredList(playerId, injuredList) {

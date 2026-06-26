@@ -11,7 +11,7 @@ import { useInView } from '../hooks/useInView'
 import StatContextBar from './StatContextBar'
 import { getPlayerInfo, getPlayerCareerHittingStats, getPlayerCareerPitchingStats } from '../services/mlbApi'
 import { isPitcher } from '../data/positions'
-import { buildOriginStories } from '../utils/lineupUtils'
+import { buildOriginStories } from '../utils/transactionUtils'
 import { buildMarinersHistoryTimeline, formatTransactionDate } from '../utils/transactionUtils'
 import {
   formatAvg,
