@@ -100,6 +100,35 @@
   font-weight: 700;
 }
 
+.game-header__linescore {
+  display: grid;
+  grid-template-columns: auto repeat(3, minmax(2rem, 1fr));
+  gap: var(--space-1) var(--space-4);
+  align-items: baseline;
+  font-family: var(--font-display);
+  font-weight: 700;
+}
+
+.game-header__linescore-row {
+  display: contents;
+}
+
+.game-header__linescore-row--header .game-header__linescore-label {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-silver);
+  text-align: center;
+}
+
+.game-header__linescore-team {
+  text-align: left;
+}
+
+.game-header__linescore-stat {
+  font-size: clamp(1.875rem, 5vw, var(--text-5xl));
+  text-align: center;
+}
+
 .game-header__team-score {
   display: flex;
   align-items: baseline;

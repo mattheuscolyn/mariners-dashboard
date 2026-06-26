@@ -1,9 +1,10 @@
 import { useState, useEffect, useCallback } from 'react'
 import { getNextGame, getUpcomingSchedule } from '../services/mlbApi'
-import { normalizeGame, isSameCalendarDay } from '../utils/gameUtils'
+import { normalizeGame, normalizeScheduleGame, isSameCalendarDay } from '../utils/gameUtils'
 
 const POLL_INTERVAL_MS = 5 * 60 * 1000
 const OFFSEASON_THRESHOLD_DAYS = 14
+const UPCOMING_SCHEDULE_LIMIT = 5
 
 function daysUntil(isoDate) {
   return (new Date(isoDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24)
@@ -29,9 +30,10 @@ export function useNextGame() {
       } else {
         setGame(null)
         const upcoming = await getUpcomingSchedule(7, signal)
-        const futureGames = upcoming.filter(
-          (g) => g.status?.abstractGameState !== 'Final',
-        )
+        const futureGames = upcoming
+          .filter((g) => g.status?.abstractGameState !== 'Final')
+          .slice(0, UPCOMING_SCHEDULE_LIMIT)
+          .map(normalizeScheduleGame)
         setUpcomingSchedule(futureGames)
 
         const nextGame = futureGames[0]

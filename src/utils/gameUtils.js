@@ -129,6 +129,25 @@ export function normalizeGame(rawGame) {
   }
 }
 
+function getMarinersProbablePitcherLabel(rawGame) {
+  const isHome = rawGame.teams?.home?.team?.id === MARINERS_ID
+  const side = isHome ? 'home' : 'away'
+  const pitcher = rawGame.teams?.[side]?.probablePitcher
+
+  if (pitcher?.fullName) return `${pitcher.fullName} (p)`
+  if (pitcher?.id) return null
+  return 'TBD'
+}
+
+export function normalizeScheduleGame(rawGame) {
+  return {
+    gamePk: rawGame.gamePk,
+    gameDate: rawGame.gameDate,
+    teams: rawGame.teams,
+    probablePitcherLabel: getMarinersProbablePitcherLabel(rawGame),
+  }
+}
+
 export function getMarinersTeam(game) {
   return game.homeTeam.isMariners ? game.homeTeam : game.awayTeam
 }

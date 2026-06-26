@@ -137,6 +137,12 @@
   text-align: right;
 }
 
+.matchup-strip__moneyline-odds {
+  font-size: var(--text-xs);
+  font-weight: 500;
+  color: var(--color-silver-dim);
+}
+
 .matchup-strip__odds-unavailable {
   display: flex;
   align-items: center;

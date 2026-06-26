@@ -46,6 +46,18 @@
   font-weight: 500;
 }
 
+.off-day__details {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.off-day__pitcher {
+  font-size: var(--text-sm);
+  color: var(--color-silver-dim);
+}
+
 .off-day__time {
   font-size: var(--text-sm);
   color: var(--color-teal-bright);

@@ -11,6 +11,63 @@ function StatusPill({ children, variant = 'default' }) {
   return <span className={`game-header__pill game-header__pill--${variant}`}>{children}</span>
 }
 
+function formatLinescoreStat(value) {
+  return value ?? '—'
+}
+
+function getTeamLinescoreStats(game, side, teamScore) {
+  const stats = game.linescore?.[side]
+  return {
+    runs: formatLinescoreStat(stats?.runs ?? teamScore),
+    hits: formatLinescoreStat(stats?.hits),
+    errors: formatLinescoreStat(stats?.errors),
+  }
+}
+
+function LinescoreBoard({ game, mariners, opponent, showLive = false }) {
+  const marinersSide = game.isHome ? 'home' : 'away'
+  const opponentSide = game.isHome ? 'away' : 'home'
+  const marinersStats = getTeamLinescoreStats(game, marinersSide, mariners.score)
+  const opponentStats = getTeamLinescoreStats(game, opponentSide, opponent.score)
+
+  return (
+    <div className="game-header__scoreboard">
+      {showLive && (
+        <span className="game-header__live">
+          <span className="game-header__live-dot" aria-hidden="true" />
+          LIVE
+        </span>
+      )}
+      <div
+        className="game-header__linescore"
+        role="table"
+        aria-label="Runs, hits, and errors"
+      >
+        <div className="game-header__linescore-row game-header__linescore-row--header" role="row">
+          <span className="game-header__linescore-team" role="columnheader" aria-hidden="true" />
+          <span className="game-header__linescore-label" role="columnheader">R</span>
+          <span className="game-header__linescore-label" role="columnheader">H</span>
+          <span className="game-header__linescore-label" role="columnheader">E</span>
+        </div>
+        <div className="game-header__linescore-row" role="row">
+          <span className="game-header__linescore-team game-header__team-abbr" role="rowheader">SEA</span>
+          <span className="game-header__linescore-stat" role="cell">{marinersStats.runs}</span>
+          <span className="game-header__linescore-stat" role="cell">{marinersStats.hits}</span>
+          <span className="game-header__linescore-stat" role="cell">{marinersStats.errors}</span>
+        </div>
+        <div className="game-header__linescore-row" role="row">
+          <span className="game-header__linescore-team game-header__team-abbr" role="rowheader">
+            {opponent.abbreviation || 'OPP'}
+          </span>
+          <span className="game-header__linescore-stat" role="cell">{opponentStats.runs}</span>
+          <span className="game-header__linescore-stat" role="cell">{opponentStats.hits}</span>
+          <span className="game-header__linescore-stat" role="cell">{opponentStats.errors}</span>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function Countdown({ gameDate, status }) {
   const [countdown, setCountdown] = useState('')
 
@@ -72,33 +129,18 @@ function GameHeader({ game }) {
 
       <p className="game-header__venue">{game.venue}</p>
 
-      {game.status === 'In Progress' && game.linescore && (
-        <div className="game-header__scoreboard">
-          <span className="game-header__live">
-            <span className="game-header__live-dot" aria-hidden="true" />
-            LIVE
-          </span>
-          <div className="game-header__scores">
-            <span className="game-header__team-score">
-              <span className="game-header__team-abbr">SEA</span>
-              <span className="game-header__score">{mariners.score ?? 0}</span>
-            </span>
-            <span className="game-header__score-divider">—</span>
-            <span className="game-header__team-score">
-              <span className="game-header__score">{opponent.score ?? 0}</span>
-              <span className="game-header__team-abbr">{opponent.abbreviation || 'OPP'}</span>
-            </span>
-          </div>
-        </div>
+      {game.status === 'In Progress' && (
+        <LinescoreBoard
+          game={game}
+          mariners={mariners}
+          opponent={opponent}
+          showLive
+        />
       )}
 
       {game.status === 'Final' && (
         <div className="game-header__final">
-          <div className="game-header__scores">
-            <span>SEA {mariners.score}</span>
-            <span>—</span>
-            <span>{opponent.abbreviation || 'OPP'} {opponent.score}</span>
-          </div>
+          <LinescoreBoard game={game} mariners={mariners} opponent={opponent} />
           <p className="game-header__next-label">Next Game</p>
         </div>
       )}

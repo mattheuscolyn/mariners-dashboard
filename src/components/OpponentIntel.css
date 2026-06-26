@@ -76,6 +76,69 @@
   gap: var(--space-4);
 }
 
+.opponent-intel__full-lineup {
+  margin-top: var(--space-4);
+}
+
+.opponent-intel__lineup-toggle {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-teal-bright);
+  cursor: pointer;
+  transition: color 0.15s;
+}
+
+.opponent-intel__lineup-toggle:hover {
+  color: var(--color-white);
+  text-decoration: underline;
+}
+
+.opponent-intel__lineup {
+  list-style: none;
+  margin: var(--space-3) 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.opponent-intel__lineup-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-navy);
+  border-radius: var(--radius-md);
+}
+
+.opponent-intel__lineup-player {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.opponent-intel__lineup-name {
+  font-weight: 600;
+  font-size: var(--text-sm);
+}
+
+.opponent-intel__lineup-pos {
+  font-size: var(--text-xs);
+  color: var(--color-silver-dim);
+  font-family: var(--font-mono);
+}
+
+.opponent-intel__lineup-stats {
+  display: flex;
+  gap: var(--space-3);
+}
+
 .opponent-intel__injuries {
   list-style: none;
   margin: 0;

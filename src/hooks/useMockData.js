@@ -1,8 +1,8 @@
 import { createContext, useContext } from 'react'
 import { mockGameStates, mockUpcomingSchedule, mockOdds } from '../data/mockGame'
 import { mockRoster, mockInjuredList } from '../data/mockRoster'
-import { mockBaseline } from '../data/mockBaseline'
-import { normalizeRosterEntry } from '../utils/gameUtils'
+import { mockBaseline, mockPlayerPositionStarts } from '../data/mockBaseline'
+import { normalizeRosterEntry, normalizeScheduleGame } from '../utils/gameUtils'
 
 export const MockBaselineContext = createContext(null)
 
@@ -28,7 +28,7 @@ export function useMockData(state = 'pregame_announced') {
 
   return {
     game: isOffDay ? null : mockGameStates[resolvedState],
-    upcomingSchedule: isOffDay ? mockUpcomingSchedule : [],
+    upcomingSchedule: isOffDay ? mockUpcomingSchedule.map(normalizeScheduleGame) : [],
     offDay: isOffDay,
     offseason: false,
     roster: mockRoster.map((entry) => normalizeRosterEntry(entry)),
@@ -37,6 +37,7 @@ export function useMockData(state = 'pregame_announced') {
     ),
     jerseyMap,
     baseline: mockBaseline,
+    playerPositionStarts: mockPlayerPositionStarts,
     odds: mockOdds,
     loading: false,
     error: null,

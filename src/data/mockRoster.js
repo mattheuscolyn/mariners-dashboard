@@ -20,9 +20,10 @@ function ilEntry(id, fullName, position, jerseyNumber, code, description, notes)
 }
 
 export const mockRoster = [
-  ...SEA_LINEUP_PLAYERS.map((p) =>
-    rosterEntry(p.id, p.fullName, p.position, p.jerseyNumber),
-  ),
+  ...SEA_LINEUP_PLAYERS.map((p) => {
+    const rosterPos = p.id === PLAYER_IDS.rodriguez ? 'CF' : p.position
+    return rosterEntry(p.id, p.fullName, rosterPos, p.jerseyNumber)
+  }),
   ilEntry(
     PLAYER_IDS.white,
     'Evan White',

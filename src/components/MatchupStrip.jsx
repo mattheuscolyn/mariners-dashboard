@@ -12,7 +12,14 @@ import {
   formatWL,
   formatPct,
 } from '../utils/statsUtils'
+import { getOpponentTeam } from '../utils/gameUtils'
 import './MatchupStrip.css'
+
+function formatAmericanOdds(odds) {
+  if (odds == null) return null
+  if (odds > 0) return `+${odds}`
+  return `−${Math.abs(odds)}`
+}
 
 function PitcherCardSkeleton() {
   return (
@@ -96,9 +103,12 @@ function PitcherCard({ pitcher, side }) {
   )
 }
 
-function WinProbabilityBar({ oddsData }) {
+function WinProbabilityBar({ oddsData, opponentAbbr = 'OPP' }) {
   const seaPct = oddsData.impliedWinPct ?? 0.5
   const oppPct = 1 - seaPct
+  const showMoneyline = oddsData.seattleOdds != null
+  const seaOdds = showMoneyline ? formatAmericanOdds(oddsData.seattleOdds) : null
+  const oppOddsFormatted = showMoneyline ? formatAmericanOdds(oddsData.oppOdds) : null
   const [animated, setAnimated] = useState(false)
 
   useEffect(() => {
@@ -109,13 +119,17 @@ function WinProbabilityBar({ oddsData }) {
   return (
     <div className="matchup-strip__odds">
       <p className="matchup-strip__odds-label">
-        Implied win probability (
-        <Tooltip glossaryTerm="Moneyline">moneyline</Tooltip>
-        )
+        <Tooltip glossaryTerm="Moneyline">Moneyline</Tooltip>
+        {' · implied win probability'}
       </p>
       <div className="matchup-strip__bar">
         <span className="matchup-strip__bar-label matchup-strip__bar-label--sea">
-          SEA {formatPct(seaPct)}
+          SEA{' '}
+          {seaOdds && (
+            <span className="matchup-strip__moneyline-odds">{seaOdds}</span>
+          )}
+          {' · '}
+          {formatPct(seaPct)}
         </span>
         <div className="matchup-strip__bar-track">
           <div
@@ -124,7 +138,12 @@ function WinProbabilityBar({ oddsData }) {
           />
         </div>
         <span className="matchup-strip__bar-label matchup-strip__bar-label--opp">
-          {formatPct(oppPct)} OPP
+          {opponentAbbr}{' '}
+          {oppOddsFormatted && (
+            <span className="matchup-strip__moneyline-odds">{oppOddsFormatted}</span>
+          )}
+          {' · '}
+          {formatPct(oppPct)}
         </span>
       </div>
     </div>
@@ -134,13 +153,14 @@ function WinProbabilityBar({ oddsData }) {
 function MatchupStrip({ game, oddsData }) {
   const seaPitcher = game.isHome ? game.probablePitchers.home : game.probablePitchers.away
   const oppPitcher = game.isHome ? game.probablePitchers.away : game.probablePitchers.home
+  const opponentAbbr = getOpponentTeam(game).abbreviation || 'OPP'
 
   return (
     <section className="matchup-strip">
       <PitcherCard pitcher={seaPitcher} side="SEA" />
 
       {oddsData ? (
-        <WinProbabilityBar oddsData={oddsData} />
+        <WinProbabilityBar oddsData={oddsData} opponentAbbr={opponentAbbr} />
       ) : null}
 
       <PitcherCard pitcher={oppPitcher} side="OPP" />

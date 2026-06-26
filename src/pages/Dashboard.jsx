@@ -11,6 +11,7 @@ import './Dashboard.css'
 
 const GameHeader = lazy(() => import('../components/GameHeader'))
 const MatchupStrip = lazy(() => import('../components/MatchupStrip'))
+const LineupChangesBanner = lazy(() => import('../components/LineupChangesBanner'))
 const LineupView = lazy(() => import('../components/LineupView'))
 const WatchFor = lazy(() => import('../components/WatchFor'))
 const OpponentIntel = lazy(() => import('../components/OpponentIntel'))
@@ -124,6 +125,14 @@ function DashboardContent({
         </section>
       </Suspense>
 
+      <Suspense fallback={null}>
+        <section className="dashboard__section dashboard__section--full">
+          {!rosterError && (
+            <LineupChangesBanner game={game} injuredList={injuredList} />
+          )}
+        </section>
+      </Suspense>
+
       <Suspense fallback={<SectionFallback tall />}>
         <section className="dashboard__section dashboard__section--lineup">
           {rosterError ? (
@@ -195,7 +204,12 @@ function DashboardMock({ mockState }) {
   const livePoll = mockState === 'live'
 
   return (
-    <MockBaselineContext.Provider value={data.baseline}>
+    <MockBaselineContext.Provider
+      value={{
+        baseline: data.baseline,
+        playerPositionStarts: data.playerPositionStarts,
+      }}
+    >
       <div className="dashboard-mock-wrap">
         <DashboardContent
         game={data.game}

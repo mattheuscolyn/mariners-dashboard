@@ -57,6 +57,7 @@
   border-radius: var(--radius-lg);
   padding: var(--space-4);
   box-shadow: var(--shadow-card);
+  overflow: visible;
 }
 
 .lineup-view__column-title {
@@ -98,6 +99,7 @@
   align-items: center;
   gap: var(--space-2);
   flex-wrap: wrap;
+  overflow: visible;
 }
 
 .lineup-view__order {
@@ -114,8 +116,59 @@
   min-width: 2rem;
 }
 
-.lineup-view__name-btn {
+.lineup-view__player-identity {
   flex: 1;
+  min-width: 120px;
+}
+
+.lineup-view__name-line {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.lineup-view__roster-pos {
+  display: block;
+  margin-top: 1px;
+  font-size: 10px;
+  color: var(--color-silver-dim);
+  letter-spacing: 0.02em;
+}
+
+.lineup-view__also-plays {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 3px;
+}
+
+.lineup-view__also-plays-label {
+  font-size: 10px;
+  color: var(--color-silver-dim);
+  margin-right: 2px;
+}
+
+.lineup-view__pos-pill {
+  display: inline-block;
+  padding: 1px 6px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1.3;
+  white-space: nowrap;
+  color: var(--color-silver-dim);
+  background: var(--color-navy-light);
+  border: 1px solid transparent;
+  border-radius: var(--radius-pill);
+  cursor: help;
+}
+
+.lineup-view__name-btn {
+  display: block;
+  width: auto;
+  flex: 1;
+  min-width: 0;
   background: none;
   border: none;
   padding: 0;
@@ -125,18 +178,12 @@
   color: var(--color-white);
   text-align: left;
   cursor: pointer;
-  min-width: 120px;
 }
 
 @media (prefers-reduced-motion: no-preference) {
   .lineup-view__name-btn {
     transition: color 0.15s;
   }
-}
-
-.lineup-view__name-btn:hover {
-  color: var(--color-teal-bright);
-  text-decoration: underline;
 }
 
 .lineup-view__position {
@@ -156,7 +203,7 @@
 }
 
 .lineup-view__explainer {
-  margin: var(--space-1) 0 0 calc(1.25rem + var(--space-2));
+  margin: var(--space-1) 0 0 calc(1.25rem + 2rem + var(--space-2));
   font-size: 0.8rem;
   font-style: italic;
   color: var(--color-silver-dim);

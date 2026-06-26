@@ -10,10 +10,17 @@ import {
   getMarinersLineup,
   getOpponentLineup,
   getOpponentTeam,
+  getMarinersTeam,
   getExpectedLineupTime,
 } from '../utils/gameUtils'
 import { getExplainerText, isOnInjuredList } from '../utils/lineupUtils'
+import { getAlternatePositions } from '../utils/positionalBaselineUtils'
+import PlayerLineupPopover from './PlayerLineupPopover'
 import './LineupView.css'
+
+function findRosterPlayer(roster, playerId) {
+  return roster?.find((p) => p.id === playerId) ?? null
+}
 
 function LineupPlayerRow({
   player,
@@ -21,11 +28,15 @@ function LineupPlayerRow({
   injuredList,
   jerseyMap,
   baseline,
+  playerPositionStarts,
+  roster,
+  teamId,
+  teamAbbr,
   isMariners,
 }) {
   const { openPlayerProfile } = usePlayerProfile()
   const delay = index * 200
-  const { trend, loading: statsLoading } = usePlayerStats(
+  const { seasonStats, recentStats, trend, loading: statsLoading } = usePlayerStats(
     player.id,
     'hitter',
     delay,
@@ -35,27 +46,68 @@ function LineupPlayerRow({
     ? getExplainerText(player, baseline, injuredList)
     : null
 
-  const onIL = isOnInjuredList(player.id, injuredList)
   const playerId = player.person?.id ?? player.id
+  const onIL = isOnInjuredList(playerId, injuredList)
   const jersey = jerseyMap?.[playerId]
   const jerseyDisplay =
     jersey != null && jersey !== '' && jersey !== '—' ? `#${jersey}` : '—'
+  const rosterPlayer = findRosterPlayer(roster, playerId)
+  const todayPosition = player.position
+  const alternatePositions = getAlternatePositions(
+    playerId,
+    todayPosition,
+    playerPositionStarts,
+  )
+  const rosterPosition =
+    isMariners && rosterPlayer?.position && rosterPlayer.position !== '—'
+      ? rosterPlayer.position
+      : null
+  const showRosterLabel =
+    rosterPosition && rosterPosition !== todayPosition
 
   return (
     <li className="lineup-view__player">
       <div className="lineup-view__player-row">
         <span className="lineup-view__order">{player.batOrder ?? index + 1}</span>
         <span className="lineup-view__jersey">{jerseyDisplay}</span>
-        <button
-          type="button"
-          className="lineup-view__name-btn"
-          onClick={() => player.id && openPlayerProfile(player.id)}
-        >
-          {player.fullName}
-        </button>
-        <Tooltip positionCode={player.position}>
-          <span className="lineup-view__position">{player.position}</span>
-        </Tooltip>
+        <div className="lineup-view__player-identity">
+          <div className="lineup-view__name-line">
+            <PlayerLineupPopover
+              player={player}
+              rosterPlayer={rosterPlayer}
+              jerseyDisplay={jerseyDisplay}
+              teamAbbr={teamAbbr}
+              teamId={teamId}
+              seasonStats={seasonStats}
+              recentStats={recentStats}
+              trend={trend}
+              statsLoading={statsLoading}
+              onProfileClick={() => player.id && openPlayerProfile(player.id)}
+            >
+              <span className="lineup-view__name-btn">{player.fullName}</span>
+            </PlayerLineupPopover>
+            <Tooltip positionCode={todayPosition}>
+              <span className="lineup-view__position">{todayPosition}</span>
+            </Tooltip>
+          </div>
+          {showRosterLabel && (
+            <span className="lineup-view__roster-pos">
+              40-man: {rosterPosition}
+            </span>
+          )}
+          {alternatePositions.length > 0 && (
+            <div className="lineup-view__also-plays">
+              <span className="lineup-view__also-plays-label">Also plays</span>
+              {alternatePositions.map(({ position, gamesStarted }) => (
+                <Tooltip key={position} positionCode={position}>
+                  <span className="lineup-view__pos-pill">
+                    {position} · {gamesStarted}
+                  </span>
+                </Tooltip>
+              ))}
+            </div>
+          )}
+        </div>
         {statsLoading ? (
           <Skeleton width="48px" height="1.25rem" borderRadius="var(--radius-pill)" />
         ) : (
@@ -80,6 +132,10 @@ function LineupColumn({
   injuredList,
   jerseyMap,
   baseline,
+  playerPositionStarts,
+  roster,
+  teamId,
+  teamAbbr,
   isMariners,
 }) {
   return (
@@ -94,6 +150,10 @@ function LineupColumn({
             injuredList={injuredList}
             jerseyMap={jerseyMap}
             baseline={baseline}
+            playerPositionStarts={playerPositionStarts}
+            roster={roster}
+            teamId={teamId}
+            teamAbbr={teamAbbr}
             isMariners={isMariners}
           />
         ))}
@@ -104,10 +164,11 @@ function LineupColumn({
 
 function LineupView({ game, roster, injuredList, jerseyMap }) {
   const [activeTab, setActiveTab] = useState('sea')
-  const { baseline } = usePositionalBaseline()
+  const { baseline, playerPositionStarts } = usePositionalBaseline()
   const seaLineup = getMarinersLineup(game)
   const oppLineup = getOpponentLineup(game)
   const opponent = getOpponentTeam(game)
+  const mariners = getMarinersTeam(game)
   const hasLineups = seaLineup.length > 0 || oppLineup.length > 0
 
   if (!hasLineups) {
@@ -147,8 +208,12 @@ function LineupView({ game, roster, injuredList, jerseyMap }) {
           title="Seattle Mariners"
           lineup={seaLineup}
           injuredList={injuredList}
-          jerseyMap={jerseyMap}
-          baseline={baseline}
+            jerseyMap={jerseyMap}
+            baseline={baseline}
+            playerPositionStarts={playerPositionStarts}
+            roster={roster}
+            teamId={mariners.id}
+          teamAbbr="SEA"
           isMariners
         />
       </div>
@@ -160,6 +225,10 @@ function LineupView({ game, roster, injuredList, jerseyMap }) {
           injuredList={[]}
           jerseyMap={jerseyMap}
           baseline={{}}
+          playerPositionStarts={{}}
+          roster={[]}
+          teamId={opponent.id}
+          teamAbbr={opponent.abbreviation || 'OPP'}
           isMariners={false}
         />
       </div>

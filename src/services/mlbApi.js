@@ -25,6 +25,22 @@ async function fetchJson(url, signal) {
   return response.json()
 }
 
+const IL_STATUS_CODES = new Set(['IL7', 'IL10', 'IL60', 'D10', 'D15', 'D60', 'DTD'])
+
+function isInjuredRosterEntry(entry) {
+  const code = (entry.status?.code ?? '').toUpperCase()
+  const desc = (entry.status?.description ?? '').toLowerCase()
+  return (
+    IL_STATUS_CODES.has(code) ||
+    code.startsWith('D') ||
+    desc.includes('injured')
+  )
+}
+
+function filterInjuredRoster(roster) {
+  return (roster ?? []).filter(isInjuredRosterEntry)
+}
+
 export async function getSchedule(date, signal) {
   const dateStr = formatDate(date ?? new Date())
   const url = `${BASE}/schedule?sportId=1&date=${dateStr}&teamId=${MARINERS_ID}&hydrate=lineups,linescore,probablePitcher,team`
@@ -75,30 +91,26 @@ export async function getRoster(signal) {
 export async function getInjuries(signal) {
   const url = `${BASE}/teams/${MARINERS_ID}/roster?rosterType=40Man&hydrate=person`
   const data = await fetchJson(url, signal)
-  const injured = (data.roster ?? []).filter(
-    (p) =>
-      p.status?.code === 'IL10' ||
-      p.status?.code === 'IL60' ||
-      p.status?.code === 'IL7' ||
-      p.status?.description?.toLowerCase().includes('injured'),
-  )
-  return injured
+  return filterInjuredRoster(data.roster)
 }
 
 export async function getPlayerStats(playerId, signal) {
-  const url = `${BASE}/people/${playerId}/stats?stats=season&group=hitting&season=2025`
+  const year = new Date().getFullYear()
+  const url = `${BASE}/people/${playerId}/stats?stats=season&group=hitting&season=${year}`
   const data = await fetchJson(url, signal)
   return data.stats ?? []
 }
 
 export async function getPlayerPitchingStats(playerId, signal) {
-  const url = `${BASE}/people/${playerId}/stats?stats=season&group=pitching&season=2025`
+  const year = new Date().getFullYear()
+  const url = `${BASE}/people/${playerId}/stats?stats=season&group=pitching&season=${year}`
   const data = await fetchJson(url, signal)
   return data.stats ?? []
 }
 
 export async function getPlayerGameLog(playerId, signal) {
-  const url = `${BASE}/people/${playerId}/stats?stats=gameLog&group=hitting&season=2025`
+  const year = new Date().getFullYear()
+  const url = `${BASE}/people/${playerId}/stats?stats=gameLog&group=hitting&season=${year}`
   const data = await fetchJson(url, signal)
   return data.stats ?? []
 }
@@ -116,7 +128,8 @@ export async function getTransactions(playerId, signal) {
 }
 
 export async function getStandings(signal) {
-  const url = `${BASE}/standings?leagueId=103&season=2025&hydrate=team`
+  const year = new Date().getFullYear()
+  const url = `${BASE}/standings?leagueId=103&season=${year}&hydrate=team`
   const data = await fetchJson(url, signal)
   return data.records ?? []
 }
@@ -128,19 +141,21 @@ export async function getTeamRoster(teamId, signal) {
 }
 
 export async function getTeamInjuries(teamId, signal) {
-  const url = `${BASE}/teams/${teamId}/roster?rosterType=injured_list&hydrate=person`
+  const url = `${BASE}/teams/${teamId}/roster?rosterType=40Man&hydrate=person`
   const data = await fetchJson(url, signal)
-  return data.roster ?? []
+  return filterInjuredRoster(data.roster)
 }
 
 export async function getPlayerPitchingGameLog(playerId, signal) {
-  const url = `${BASE}/people/${playerId}/stats?stats=gameLog&group=pitching&season=2025`
+  const year = new Date().getFullYear()
+  const url = `${BASE}/people/${playerId}/stats?stats=gameLog&group=pitching&season=${year}`
   const data = await fetchJson(url, signal)
   return data.stats ?? []
 }
 
 export async function getSeasonSchedule(signal) {
-  const url = `${BASE}/schedule?sportId=1&season=2025&teamId=${MARINERS_ID}&hydrate=team,linescore`
+  const year = new Date().getFullYear()
+  const url = `${BASE}/schedule?sportId=1&season=${year}&teamId=${MARINERS_ID}&hydrate=team,linescore`
   const data = await fetchJson(url, signal)
   return data.dates?.flatMap((d) => d.games ?? []) ?? []
 }
@@ -158,10 +173,23 @@ export async function getPlayerCareerHittingStats(playerId, signal) {
   return data.stats ?? []
 }
 
+export async function getPlayerYearByYearHittingStats(playerId, signal) {
+  const url = `${BASE}/people/${playerId}/stats?stats=yearByYear&group=hitting&sportId=1`
+  const data = await fetchJson(url, signal)
+  return data.stats ?? []
+}
+
 export async function getPlayerCareerPitchingStats(playerId, signal) {
   const url = `${BASE}/people/${playerId}/stats?stats=career&group=pitching`
   const data = await fetchJson(url, signal)
   return data.stats ?? []
+}
+
+export async function getLeagueSeasonStats(group, signal) {
+  const year = new Date().getFullYear()
+  const url = `${BASE}/stats?stats=season&group=${group}&sportId=1&season=${year}&playerPool=All&limit=1000`
+  const data = await fetchJson(url, signal)
+  return data.stats?.[0]?.splits ?? []
 }
 
 export { MARINERS_ID }

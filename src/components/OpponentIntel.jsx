@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import Card from './Card'
 import StatBadge from './StatBadge'
 import LoadingSpinner from './LoadingSpinner'
@@ -10,11 +10,11 @@ import {
   getPlayerStats,
   MARINERS_ID,
 } from '../services/mlbApi'
-import { getOpponentTeam, normalizeRosterEntry } from '../utils/gameUtils'
+import { getOpponentTeam, getOpponentLineup, normalizeRosterEntry } from '../utils/gameUtils'
 import { parseHittingStat, computeOPS, formatAvg } from '../utils/statsUtils'
 import './OpponentIntel.css'
 
-async function fetchTopHitters(roster, signal) {
+async function fetchHitterStats(roster, signal) {
   const hitters = roster.filter((p) => p.position !== 'P').slice(0, 15)
   const statsPromises = hitters.map(async (player) => {
     try {
@@ -27,7 +27,37 @@ async function fetchTopHitters(roster, signal) {
   })
 
   const results = (await Promise.all(statsPromises)).filter(Boolean)
-  return results.sort((a, b) => b.ops - a.ops).slice(0, 3)
+  return results.sort((a, b) => b.ops - a.ops)
+}
+
+function buildFullLineup(game, allHitters) {
+  const statsById = Object.fromEntries(allHitters.map((h) => [h.id, h]))
+  const oppLineup = getOpponentLineup(game).filter((p) => p.position !== 'P')
+
+  if (oppLineup.length > 0) {
+    return oppLineup.slice(0, 9).map((player) => {
+      const withStats = statsById[player.id]
+      return {
+        id: player.id,
+        fullName: player.fullName,
+        position: player.position,
+        stat: withStats?.stat ?? null,
+        batOrder: player.batOrder,
+      }
+    })
+  }
+
+  return allHitters.slice(0, 9).map((h) => ({
+    id: h.id,
+    fullName: h.fullName,
+    position: h.position,
+    stat: h.stat,
+  }))
+}
+
+function formatRate(stat, field) {
+  if (!stat || stat[field] == null) return '—'
+  return formatAvg(parseFloat(stat[field]))
 }
 
 function computeHeadToHead(games, opponentId) {
@@ -71,11 +101,18 @@ function HitterNameButton({ playerId, name }) {
 
 function OpponentIntel({ game }) {
   const opponent = getOpponentTeam(game)
-  const [topHitters, setTopHitters] = useState([])
+  const [allHitters, setAllHitters] = useState([])
   const [injuredList, setInjuredList] = useState([])
   const [headToHead, setHeadToHead] = useState(null)
+  const [lineupExpanded, setLineupExpanded] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+
+  const topHitters = useMemo(() => allHitters.slice(0, 3), [allHitters])
+  const fullLineup = useMemo(
+    () => buildFullLineup(game, allHitters),
+    [game, allHitters],
+  )
 
   useEffect(() => {
     const controller = new AbortController()
@@ -92,8 +129,8 @@ function OpponentIntel({ game }) {
         setInjuredList(injuryData.map(normalizeRosterEntry))
         setHeadToHead(computeHeadToHead(seasonGames, opponent.id))
 
-        const hitters = await fetchTopHitters(roster, controller.signal)
-        setTopHitters(hitters)
+        const hitters = await fetchHitterStats(roster, controller.signal)
+        setAllHitters(hitters)
         setError(null)
       } catch (err) {
         if (err.name !== 'AbortError') {
@@ -141,6 +178,40 @@ function OpponentIntel({ game }) {
           </div>
         ) : (
           <p className="opponent-intel__empty">Stats unavailable</p>
+        )}
+
+        {fullLineup.length > 0 && (
+          <div className="opponent-intel__full-lineup">
+            <button
+              type="button"
+              className="opponent-intel__lineup-toggle"
+              onClick={() => setLineupExpanded((open) => !open)}
+              aria-expanded={lineupExpanded}
+            >
+              {lineupExpanded ? 'Hide ↑' : 'Show full lineup ↓'}
+            </button>
+            {lineupExpanded && (
+              <ol className="opponent-intel__lineup">
+                {fullLineup.map((player, index) => (
+                  <li key={player.id ?? index} className="opponent-intel__lineup-row">
+                    <div className="opponent-intel__lineup-player">
+                      {player.id ? (
+                        <HitterNameButton playerId={player.id} name={player.fullName} />
+                      ) : (
+                        <span className="opponent-intel__lineup-name">{player.fullName}</span>
+                      )}
+                      <span className="opponent-intel__lineup-pos">{player.position}</span>
+                    </div>
+                    <div className="opponent-intel__lineup-stats">
+                      <StatBadge label="AVG" value={formatRate(player.stat, 'avg')} />
+                      <StatBadge label="OBP" value={formatRate(player.stat, 'obp')} />
+                      <StatBadge label="SLG" value={formatRate(player.stat, 'slg')} />
+                    </div>
+                  </li>
+                ))}
+              </ol>
+            )}
+          </div>
         )}
       </section>
 

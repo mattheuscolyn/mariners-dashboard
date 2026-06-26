@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import HotColdBadge from './HotColdBadge'
 import StatBadge from './StatBadge'
@@ -6,11 +6,13 @@ import Tooltip from './Tooltip'
 import Skeleton from './Skeleton'
 import { usePlayerStats } from '../hooks/usePlayerStats'
 import { usePlayerOrigin } from '../hooks/usePlayerOrigin'
+import { useLeagueAverages } from '../hooks/useLeagueAverages'
 import { useInView } from '../hooks/useInView'
+import StatContextBar from './StatContextBar'
 import { getPlayerInfo, getPlayerCareerHittingStats, getPlayerCareerPitchingStats } from '../services/mlbApi'
 import { isPitcher } from '../data/positions'
 import { buildOriginStories } from '../utils/lineupUtils'
-import { LEAGUE_AVG_HITTER, LEAGUE_AVG_PITCHER } from '../data/statGlossary'
+import { buildMarinersHistoryTimeline, formatTransactionDate } from '../utils/transactionUtils'
 import {
   formatAvg,
   formatERA,
@@ -22,6 +24,51 @@ import {
   summarizeLastStarts,
 } from '../utils/statsUtils'
 import './PlayerProfile.css'
+
+function calculateAge(birthDate) {
+  if (!birthDate) return null
+  const birth = new Date(birthDate)
+  if (Number.isNaN(birth.getTime())) return null
+
+  const today = new Date()
+  let age = today.getFullYear() - birth.getFullYear()
+  const hadBirthday =
+    today.getMonth() > birth.getMonth() ||
+    (today.getMonth() === birth.getMonth() && today.getDate() >= birth.getDate())
+  if (!hadBirthday) age -= 1
+
+  return age >= 0 ? age : null
+}
+
+function buildBioLine(info) {
+  if (!info) return null
+
+  const segments = []
+
+  const age = calculateAge(info.birthDate)
+  const birthplace = [info.birthCity, info.birthCountry].filter(Boolean).join(', ')
+  if (age != null && birthplace) segments.push(`${age} · ${birthplace}`)
+  else if (age != null) segments.push(String(age))
+  else if (birthplace) segments.push(birthplace)
+
+  const batDesc = info.batSide?.description
+  const throwDesc = info.pitchHand?.description
+  if (batDesc && throwDesc) {
+    segments.push(`Bats: ${batDesc} · Throws: ${throwDesc}`)
+  } else if (batDesc) {
+    segments.push(`Bats: ${batDesc}`)
+  } else if (throwDesc) {
+    segments.push(`Throws: ${throwDesc}`)
+  }
+
+  const heightWeight = [
+    info.height || null,
+    info.weight != null ? `${info.weight} lbs` : null,
+  ].filter(Boolean)
+  if (heightWeight.length) segments.push(heightWeight.join(' · '))
+
+  return segments.length ? segments.join(' · ') : null
+}
 
 function PlayerHeadshot({ playerId, fullName }) {
   const [failed, setFailed] = useState(false)
@@ -134,8 +181,13 @@ function PlayerProfile({ playerId, onClose }) {
   const { seasonStats, recentStats, recentGameSplits, trend, recentStartsSummary, loading: statsLoading } =
     usePlayerStats(playerId, playerType)
   const { transactions, loading: originLoading } = usePlayerOrigin(playerId)
+  const { averages: leagueAverages, loading: leagueLoading } = useLeagueAverages()
 
   const originStories = buildOriginStories(transactions, 2)
+  const marinersHistory = useMemo(
+    () => buildMarinersHistoryTimeline(transactions),
+    [transactions],
+  )
 
   const handleKeyDown = useCallback(
     (e) => {
@@ -164,9 +216,17 @@ function PlayerProfile({ playerId, onClose }) {
           setPlayer({
             id: info.id,
             fullName: info.fullName,
+            nickName: info.nickName || null,
             jerseyNumber: info.primaryNumber ?? '—',
             position: info.primaryPosition?.abbreviation ?? '—',
             debutDate: info.mlbDebutDate,
+            birthDate: info.birthDate,
+            birthCity: info.birthCity,
+            birthCountry: info.birthCountry,
+            batSide: info.batSide,
+            pitchHand: info.pitchHand,
+            height: info.height,
+            weight: info.weight,
           })
         }
       } catch {
@@ -199,6 +259,8 @@ function PlayerProfile({ playerId, onClose }) {
     return `${player?.fullName ?? 'Player'} is performing close to their season average.`
   }
 
+  const bioLine = buildBioLine(player)
+
   return (
     <div className="player-profile" role="dialog" aria-modal="true" aria-label="Player profile">
       <button
@@ -219,28 +281,36 @@ function PlayerProfile({ playerId, onClose }) {
 
         {infoLoading ? (
           <div className="player-profile__hero">
-            <Skeleton width="90px" height="90px" borderRadius="50%" />
-            <div style={{ flex: 1 }}>
-              <Skeleton width="80%" height="2.5rem" />
-              <Skeleton width="40%" height="1rem" />
+            <div className="player-profile__hero-main">
+              <Skeleton width="90px" height="90px" borderRadius="50%" />
+              <div style={{ flex: 1 }}>
+                <Skeleton width="80%" height="2.5rem" />
+                <Skeleton width="40%" height="1rem" />
+              </div>
             </div>
           </div>
         ) : (
           <div className="player-profile__content">
             <section className="player-profile__hero">
-              <PlayerHeadshot playerId={playerId} fullName={player.fullName} />
-              <div className="player-profile__hero-text">
-                <h2 className="player-profile__name">{player.fullName}</h2>
-                <p className="player-profile__meta">
-                  #{player.jerseyNumber} · {player.position}
-                </p>
-                {!statsLoading && trend !== 'neutral' && (
-                  <HotColdBadge
-                    trend={trend}
-                    label={trend === 'hot' ? 'Hot' : 'Cold'}
-                  />
-                )}
+              <div className="player-profile__hero-main">
+                <PlayerHeadshot playerId={playerId} fullName={player.fullName} />
+                <div className="player-profile__hero-text">
+                  <h2 className="player-profile__name">{player.fullName}</h2>
+                  {player.nickName && (
+                    <p className="player-profile__nickname">&ldquo;{player.nickName}&rdquo;</p>
+                  )}
+                  <p className="player-profile__meta">
+                    #{player.jerseyNumber} · {player.position}
+                  </p>
+                  {!statsLoading && trend !== 'neutral' && (
+                    <HotColdBadge
+                      trend={trend}
+                      label={trend === 'hot' ? 'Hot' : 'Cold'}
+                    />
+                  )}
+                </div>
               </div>
+              {bioLine && <p className="player-profile__bio">{bioLine}</p>}
             </section>
 
             <section className="player-profile__section">
@@ -271,13 +341,89 @@ function PlayerProfile({ playerId, onClose }) {
                 </div>
               ) : seasonStats ? (
                 <>
-                  <div className="player-profile__stats">
+                  {leagueLoading ? (
+                    <div className="player-profile__stat-context-list">
+                      {[1, 2, 3].map((i) => (
+                        <Skeleton key={i} height="3.5rem" width="100%" />
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="player-profile__stat-context-list">
+                      {pitcher ? (
+                        <>
+                          <StatContextBar
+                            label="ERA"
+                            glossaryTerm="ERA"
+                            value={parseFloat(seasonStats.era ?? 0)}
+                            displayValue={formatERA(parseFloat(seasonStats.era ?? 0))}
+                            distribution={leagueAverages?.pitching?.era}
+                            higherIsBetter={false}
+                          />
+                          <StatContextBar
+                            label="WHIP"
+                            glossaryTerm="WHIP"
+                            value={parseFloat(seasonStats.whip ?? 0)}
+                            displayValue={formatWHIP(seasonStats.whip)}
+                            distribution={leagueAverages?.pitching?.whip}
+                            higherIsBetter={false}
+                          />
+                          <StatContextBar
+                            label="K/9"
+                            glossaryTerm="K/9"
+                            value={parseFloat(computeK9(seasonStats))}
+                            displayValue={computeK9(seasonStats)}
+                            distribution={leagueAverages?.pitching?.k9}
+                          />
+                        </>
+                      ) : (
+                        <>
+                          <StatContextBar
+                            label="AVG"
+                            glossaryTerm="AVG"
+                            value={parseFloat(seasonStats.avg ?? 0)}
+                            displayValue={formatAvg(parseFloat(seasonStats.avg ?? 0))}
+                            distribution={leagueAverages?.hitting?.avg}
+                          />
+                          <StatContextBar
+                            label="OBP"
+                            glossaryTerm="OBP"
+                            value={parseFloat(seasonStats.obp ?? 0)}
+                            displayValue={formatAvg(parseFloat(seasonStats.obp ?? 0))}
+                            distribution={leagueAverages?.hitting?.obp}
+                          />
+                          <StatContextBar
+                            label="SLG"
+                            glossaryTerm="SLG"
+                            value={parseFloat(seasonStats.slg ?? 0)}
+                            displayValue={formatAvg(parseFloat(seasonStats.slg ?? 0))}
+                            distribution={leagueAverages?.hitting?.slg}
+                          />
+                          {leagueAverages?.hitting?.wrcPlus && (
+                            <StatContextBar
+                              label="wRC+"
+                              glossaryTerm="wRC+"
+                              value={parseFloat(seasonStats.wrcPlus ?? 0)}
+                              displayValue={String(Math.round(parseFloat(seasonStats.wrcPlus ?? 0)))}
+                              distribution={leagueAverages.hitting.wrcPlus}
+                            />
+                          )}
+                        </>
+                      )}
+                    </div>
+                  )}
+                  <div className="player-profile__stats player-profile__stats--secondary">
                     {pitcher ? (
                       <>
-                        <Tooltip glossaryTerm="ERA"><StatBadge label="ERA" value={formatERA(parseFloat(seasonStats.era ?? 0))} /></Tooltip>
-                        <Tooltip glossaryTerm="WHIP"><StatBadge label="WHIP" value={formatWHIP(seasonStats.whip)} /></Tooltip>
-                        <Tooltip glossaryTerm="K/9"><StatBadge label="K/9" value={computeK9(seasonStats)} /></Tooltip>
-                        <Tooltip glossaryTerm="BB/9"><StatBadge label="BB/9" value={((parseFloat(seasonStats.baseOnBalls ?? 0) / Math.max(parseFloat(seasonStats.inningsPitched ?? 1), 1)) * 9).toFixed(1)} /></Tooltip>
+                        <Tooltip glossaryTerm="BB/9">
+                          <StatBadge
+                            label="BB/9"
+                            value={(
+                              (parseFloat(seasonStats.baseOnBalls ?? 0) /
+                                Math.max(parseFloat(seasonStats.inningsPitched ?? 1), 1)) *
+                              9
+                            ).toFixed(1)}
+                          />
+                        </Tooltip>
                         <StatBadge label="W" value={seasonStats.wins ?? 0} />
                         <StatBadge label="L" value={seasonStats.losses ?? 0} />
                         {(seasonStats.saves > 0 || player.position === 'CL') && (
@@ -286,19 +432,26 @@ function PlayerProfile({ playerId, onClose }) {
                       </>
                     ) : (
                       <>
-                        <Tooltip glossaryTerm="AVG"><StatBadge label="AVG" value={formatAvg(parseFloat(seasonStats.avg ?? 0))} /></Tooltip>
-                        <Tooltip glossaryTerm="OBP"><StatBadge label="OBP" value={formatAvg(parseFloat(seasonStats.obp ?? 0))} /></Tooltip>
-                        <Tooltip glossaryTerm="SLG"><StatBadge label="SLG" value={formatAvg(parseFloat(seasonStats.slg ?? 0))} /></Tooltip>
-                        <Tooltip glossaryTerm="OPS"><StatBadge label="OPS" value={parseFloat(seasonStats.ops ?? computeOPS(seasonStats)).toFixed(3)} /></Tooltip>
-                        <Tooltip glossaryTerm="HR"><StatBadge label="HR" value={seasonStats.homeRuns ?? 0} /></Tooltip>
-                        <Tooltip glossaryTerm="RBI"><StatBadge label="RBI" value={seasonStats.rbi ?? 0} /></Tooltip>
-                        <Tooltip glossaryTerm="SB"><StatBadge label="SB" value={seasonStats.stolenBases ?? 0} /></Tooltip>
+                        <Tooltip glossaryTerm="OPS">
+                          <StatBadge
+                            label="OPS"
+                            value={parseFloat(
+                              seasonStats.ops ?? computeOPS(seasonStats),
+                            ).toFixed(3)}
+                          />
+                        </Tooltip>
+                        <Tooltip glossaryTerm="HR">
+                          <StatBadge label="HR" value={seasonStats.homeRuns ?? 0} />
+                        </Tooltip>
+                        <Tooltip glossaryTerm="RBI">
+                          <StatBadge label="RBI" value={seasonStats.rbi ?? 0} />
+                        </Tooltip>
+                        <Tooltip glossaryTerm="SB">
+                          <StatBadge label="SB" value={seasonStats.stolenBases ?? 0} />
+                        </Tooltip>
                       </>
                     )}
                   </div>
-                  <p className="player-profile__league-avg">
-                    League avg: {pitcher ? LEAGUE_AVG_PITCHER : LEAGUE_AVG_HITTER}
-                  </p>
                 </>
               ) : (
                 <p className="player-profile__muted">Stats unavailable</p>
@@ -318,6 +471,27 @@ function PlayerProfile({ playerId, onClose }) {
                   {trend === 'cold' && '❄️ Recent starts have been a struggle.'}
                   {trend === 'neutral' && 'Performing close to season average over recent starts.'}
                 </p>
+              )}
+            </section>
+
+            <section className="player-profile__section">
+              <h3 className="player-profile__section-label">Mariners history</h3>
+              {originLoading ? (
+                <span className="player-profile__shimmer">· · ·</span>
+              ) : marinersHistory.length === 0 ? (
+                <p className="player-profile__muted">No transaction history available.</p>
+              ) : (
+                <ol className="player-profile__timeline">
+                  {marinersHistory.map((event) => (
+                    <li key={event.id} className="player-profile__timeline-item">
+                      <p className="player-profile__timeline-date">
+                        {formatTransactionDate(event.date)}
+                      </p>
+                      <p className="player-profile__timeline-label">{event.label}</p>
+                      <p className="player-profile__timeline-desc">{event.description}</p>
+                    </li>
+                  ))}
+                </ol>
               )}
             </section>
 

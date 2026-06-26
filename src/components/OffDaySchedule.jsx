@@ -38,7 +38,12 @@ function OffDaySchedule({ upcomingSchedule, offseason }) {
           {upcomingSchedule.map((g) => (
             <li key={g.gamePk} className="off-day__item">
               <span className="off-day__date">{getDayLabel(g.gameDate)}</span>
-              <span className="off-day__opponent">{getOpponentName(g)}</span>
+              <div className="off-day__details">
+                <span className="off-day__opponent">{getOpponentName(g)}</span>
+                {g.probablePitcherLabel != null && (
+                  <span className="off-day__pitcher">{g.probablePitcherLabel}</span>
+                )}
+              </div>
               <span className="off-day__time">{formatGameTimePT(g.gameDate)} PT</span>
             </li>
           ))}

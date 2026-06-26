@@ -180,6 +180,10 @@ export const mockUpcomingSchedule = [
           teamName: 'Mariners',
           abbreviation: 'SEA',
         },
+        probablePitcher: {
+          id: 682243,
+          fullName: 'George Kirby',
+        },
       },
     },
     status: { abstractGameState: 'Preview', detailedState: 'Scheduled' },

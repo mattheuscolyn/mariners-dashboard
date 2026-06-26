@@ -29,3 +29,36 @@ export const mockBaseline = Object.fromEntries(
     ]
   }),
 )
+
+export const mockPlayerPositionStarts = {
+  [PLAYER_IDS.rodriguez]: [
+    { position: 'CF', gamesStarted: 98 },
+    { position: 'DH', gamesStarted: 18 },
+    { position: 'RF', gamesStarted: 4 },
+  ],
+  [PLAYER_IDS.raley]: [
+    { position: 'LF', gamesStarted: 34 },
+    { position: 'RF', gamesStarted: 22 },
+    { position: '1B', gamesStarted: 8 },
+  ],
+  [PLAYER_IDS.emerson]: [
+    { position: '3B', gamesStarted: 52 },
+    { position: 'SS', gamesStarted: 14 },
+    { position: '2B', gamesStarted: 6 },
+  ],
+  [PLAYER_IDS.young]: [
+    { position: '2B', gamesStarted: 68 },
+    { position: 'DH', gamesStarted: 12 },
+  ],
+  [PLAYER_IDS.naylor]: [
+    { position: '1B', gamesStarted: 61 },
+    { position: 'DH', gamesStarted: 9 },
+  ],
+  [PLAYER_IDS.robles]: [
+    { position: 'CF', gamesStarted: 28 },
+    { position: 'LF', gamesStarted: 11 },
+  ],
+  [PLAYER_IDS.crawford]: [{ position: 'SS', gamesStarted: 72 }],
+  [PLAYER_IDS.arozarena]: [{ position: 'LF', gamesStarted: 72 }],
+  [PLAYER_IDS.raleigh]: [{ position: 'C', gamesStarted: 72 }],
+}
